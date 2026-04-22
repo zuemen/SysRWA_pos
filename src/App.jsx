@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Zap, ShieldCheck, DollarSign, Globe, Activity, 
-  RefreshCcw, Cpu, BarChart3, ArrowUpRight, AlertTriangle, ChevronRight, MapPin, CheckCircle2, Lock, Fingerprint, Search
+  RefreshCcw, Cpu, BarChart3, ArrowUpRight, AlertTriangle, 
+  ChevronRight, MapPin, CheckCircle2, Lock, Fingerprint, 
+  Search, Bell, BrainCircuit, History, ArrowRightLeft, 
+  Leaf, Info
 } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, 
@@ -22,7 +25,8 @@ const BBU_ASSETS = [
     location: '德州 普萊諾',
     color: 'cyan',
     ulCert: 'UL-2024-XP99',
-    installDate: '2024-10-15'
+    installDate: '2024-10-15',
+    aiStatus: '運作中 - 負載預測精準度 99.2%'
   },
   {
     id: 'BBU-TX-042',
@@ -35,7 +39,8 @@ const BBU_ASSETS = [
     location: '德州 奧斯丁',
     color: 'purple',
     ulCert: 'UL-2024-SM12',
-    installDate: '2024-11-20'
+    installDate: '2024-11-20',
+    aiStatus: '警示 - 偵測到毫秒級功率跳變'
   },
   {
     id: 'BBU-TW-101',
@@ -48,7 +53,40 @@ const BBU_ASSETS = [
     location: '德州 達拉斯',
     color: 'green',
     ulCert: 'UL-2024-TS01',
-    installDate: '2024-12-05'
+    installDate: '2024-12-05',
+    aiStatus: '運作中 - 健康度衰減率低於預期'
+  }
+];
+
+// --- 發展藍圖數據 ---
+const ROADMAP_STEPS = [
+  {
+    stage: '第一階段',
+    title: '物理錨定與數據自動化',
+    period: '2025 Q3 - 2026 Q1',
+    status: 'COMPLETED',
+    items: ['德州 Plano 廠自動化產線落地', 'IoT 閘道器與 BMS 深度整合', 'SoH 數據實時上鏈驗證']
+  },
+  {
+    stage: '第二階段',
+    title: '資產金融化與訂閱啟動',
+    period: '2026 Q2 - 當前執行中',
+    status: 'ACTIVE',
+    items: ['SPV 特殊目的載體註冊完成', '合規 RWA 代幣鑄造門戶開放', 'SME 零門檻 (Zero CAPEX) 訂閱啟動']
+  },
+  {
+    stage: '第三階段',
+    title: '能源價值極大化',
+    period: '2026 Q4',
+    status: 'PENDING',
+    items: ['ERCOT 需量反應供應商對接', 'VPP 虛擬電廠自動化營運', '智能合約自動分潤系統測試']
+  },
+  {
+    stage: '第四階段',
+    title: 'ESG 閉環與永續循環',
+    period: '2027+',
+    status: 'UPCOMING',
+    items: ['重置基金自動觸發汰換機制', '二手 BBU 梯次利用市場建立', '碳權紀錄與綠電憑證核發']
   }
 ];
 
@@ -62,30 +100,56 @@ const PTENexus = () => {
   const [showVcModal, setShowVcModal] = useState(false);
   const [showPaymentAnimation, setShowPaymentAnimation] = useState(false);
   const [sinkingFund, setSinkingFund] = useState(48200.00);
+  const [notifications, setNotifications] = useState([]);
 
-  // 模擬即時 IoT 預言機數據跳動
+  // 模擬即時 IoT 預言機與 AI 分析
   useEffect(() => {
     const timer = setInterval(() => {
-      // 如果電網緊急，收益速度翻倍
       const multi = isGridEmergency ? 5.0 : 1.0;
       setRevenue(r => r + (selectedBbu.rentFee / 30 / 24 / 60 / 30) * multi);
-      setLocalSoh(s => s - 0.000001);
+      setLocalSoh(s => {
+        const newSoh = s - 0.000001;
+        // 如果 SoH 跌破某個門檻模擬 AI 預警
+        if (Math.random() > 0.99) {
+          addNotification('AI 診斷：偵測到 Rack-02 散熱異常，預計影響健康度衰減率，已通知現場維修人員。', 'warning');
+        }
+        return newSoh;
+      });
     }, 2000);
     return () => clearInterval(timer);
   }, [selectedBbu, isGridEmergency]);
 
   useEffect(() => {
     setLocalSoh(selectedBbu.soh);
+    addNotification(`AI 接入：已切換至資產 ${selectedBbu.id}，正在同步物理環境數據...`, 'info');
   }, [selectedBbu]);
 
-  // 模擬收租與分流演示
+  const addNotification = (text, type) => {
+    const id = Date.now();
+    setNotifications(prev => [{ id, text, type }, ...prev].slice(0, 5));
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 5000);
+  };
+
   const handleSimulatePayment = () => {
     setShowPaymentAnimation(true);
     setTimeout(() => {
       setRevenue(r => r + selectedBbu.rentFee * 0.8);
       setSinkingFund(s => s + selectedBbu.rentFee * 0.2);
       setShowPaymentAnimation(false);
+      addNotification(`資金清結算：客戶 ${selectedBbu.client} 已完成支付，重置基金自動撥備 20%。`, 'success');
     }, 3000);
+  };
+
+  const handleEmergencyToggle = () => {
+    const newState = !isGridEmergency;
+    setIsGridEmergency(newState);
+    if (newState) {
+      addNotification('⚠️ ERCOT 警報：德州電網負荷過載！AI 已自動將所有節點轉向 VPP 饋電模式。', 'error');
+    } else {
+      addNotification('✅ 電網恢復穩定：系統已轉回常規 PAL 保護模式。', 'info');
+    }
   };
 
   return (
@@ -96,6 +160,26 @@ const PTENexus = () => {
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 blur-[120px] rounded-full" />
       </div>
 
+      {/* 通知中心 */}
+      <div className="fixed top-24 right-8 z-[100] w-80 space-y-2">
+        <AnimatePresence>
+          {notifications.map(n => (
+            <motion.div 
+              key={n.id} initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}
+              className={`p-4 rounded-2xl border text-[10px] font-bold shadow-2xl backdrop-blur-xl flex gap-3 items-center ${
+                n.type === 'error' ? 'bg-red-500/20 border-red-500 text-red-400' :
+                n.type === 'warning' ? 'bg-orange-500/20 border-orange-500 text-orange-400' :
+                n.type === 'success' ? 'bg-green-500/20 border-green-500 text-green-400' :
+                'bg-cyan-500/20 border-cyan-500 text-cyan-400'
+              }`}
+            >
+              <BrainCircuit size={16} className="shrink-0" />
+              <span>{n.text}</span>
+            </motion.div>
+          ))}
+        </AnimatePresence>
+      </div>
+
       <div className="relative z-10 max-w-7xl mx-auto">
         {/* 導覽列 */}
         <nav className="flex flex-col md:flex-row justify-between items-center mb-8 gap-6 bg-slate-900/50 backdrop-blur-xl p-6 rounded-3xl border border-slate-800 shadow-2xl">
@@ -104,8 +188,8 @@ const PTENexus = () => {
               <Zap className="text-white fill-white" size={24} />
             </div>
             <div>
-              <h1 className="text-2xl font-black tracking-tighter text-white uppercase">PTE-PAL <span className="text-cyan-400 text-sm tracking-widest ml-1 font-bold italic underline decoration-cyan-500/30 underline-offset-4">NEXUS 運籌平台</span></h1>
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">系統電集團：德州 ERCOT 基礎設施協議</p>
+              <h1 className="text-2xl font-black tracking-tighter text-white uppercase italic">PTE-PAL <span className="text-cyan-400 text-sm tracking-widest ml-1 font-bold italic underline decoration-cyan-500/30 underline-offset-4 font-black">NEXUS v1.5</span></h1>
+              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">系統電：AI 算力韌性與 RWA 金融運籌</p>
             </div>
           </div>
           
@@ -113,26 +197,24 @@ const PTENexus = () => {
             {[
               { id: 'DASHBOARD', label: '即時看板' },
               { id: 'FINANCE', label: '資產金融' },
-              { id: 'GRID', label: '電網韌性' }
+              { id: 'GRID', label: '電網韌性' },
+              { id: 'ROADMAP', label: '發展藍圖' }
             ].map(tab => (
               <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`px-6 py-2 rounded-xl text-xs font-black transition-all ${activeTab === tab.id ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20' : 'text-slate-500 hover:text-white'}`}
+                className={`px-5 py-2 rounded-xl text-[10px] font-black transition-all uppercase tracking-widest ${activeTab === tab.id ? 'bg-cyan-500 text-slate-950 shadow-lg shadow-cyan-500/20' : 'text-slate-500 hover:text-white'}`}
               >
                 {tab.label}
               </button>
             ))}
           </div>
 
-          <div className="flex items-center gap-6">
-            <div className="text-right hidden sm:block">
-              <p className="text-[10px] text-slate-500 font-bold uppercase tracking-widest">平台即時總收益</p>
+          <div className="flex items-center gap-6 text-right">
+             <div className="hidden sm:block">
+              <p className="text-[8px] text-slate-500 font-black uppercase tracking-[0.3em]">Protocol Yield (24H)</p>
               <p className="text-xl font-mono text-green-400 font-bold">${revenue.toLocaleString(undefined, {minimumFractionDigits: 2})}</p>
             </div>
-            <button className="bg-white text-black px-6 py-3 rounded-2xl font-black text-sm hover:bg-cyan-400 transition-all active:scale-95 shadow-xl">
-              連結錢包
-            </button>
           </div>
         </nav>
 
@@ -149,11 +231,11 @@ const PTENexus = () => {
                     className={`p-4 rounded-2xl border transition-all text-left group relative overflow-hidden ${selectedBbu.id === asset.id ? 'bg-slate-800 border-cyan-500 shadow-lg shadow-cyan-500/10' : 'bg-slate-900/50 border-slate-800 hover:border-slate-700'}`}
                   >
                     <div className="flex justify-between items-start mb-2">
-                      <p className={`text-[10px] font-bold uppercase ${selectedBbu.id === asset.id ? 'text-cyan-400' : 'text-slate-500'}`}>{asset.id}</p>
+                      <p className={`text-[8px] font-black uppercase tracking-widest ${selectedBbu.id === asset.id ? 'text-cyan-400' : 'text-slate-500'}`}>{asset.id}</p>
                       {selectedBbu.id === asset.id && <div className="w-2 h-2 bg-cyan-500 rounded-full animate-pulse" />}
                     </div>
-                    <p className="text-sm font-black text-white group-hover:text-cyan-400 transition-colors">{asset.name}</p>
-                    <p className="text-[10px] text-slate-500 mt-1">{asset.client}</p>
+                    <p className="text-sm font-black text-white group-hover:text-cyan-400 transition-colors tracking-tight">{asset.name}</p>
+                    <p className="text-[10px] text-slate-500 mt-1 font-bold">{asset.client}</p>
                   </button>
                 ))}
               </div>
@@ -162,7 +244,7 @@ const PTENexus = () => {
                 revenue={revenue} 
                 soh={localSoh} 
                 selectedBbu={selectedBbu} 
-                onVerifyOracle={() => setShowOracleOracle(true)}
+                onVerifyOracle={() => setShowOracleModal(true)}
                 onViewVc={() => setShowVcModal(true)}
                 isGridEmergency={isGridEmergency}
               />
@@ -181,8 +263,11 @@ const PTENexus = () => {
             <GridView 
               key="grid" 
               isEmergency={isGridEmergency} 
-              onToggle={() => setIsGridEmergency(!isGridEmergency)} 
+              onToggle={handleEmergencyToggle} 
             />
+          )}
+          {activeTab === 'ROADMAP' && (
+             <RoadmapView key="roadmap" />
           )}
         </AnimatePresence>
 
@@ -194,7 +279,7 @@ const PTENexus = () => {
   );
 };
 
-// --- 分頁：運籌看板 ---
+// --- 分頁組件：運籌看板 (加強 AI 分析) ---
 const DashboardView = ({ revenue, soh, selectedBbu, onVerifyOracle, onViewVc, isGridEmergency }) => (
   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
     <div className="lg:col-span-8 space-y-6">
@@ -203,9 +288,9 @@ const DashboardView = ({ revenue, soh, selectedBbu, onVerifyOracle, onViewVc, is
           title="電池健康度 (SoH)" 
           value={`${soh.toFixed(6)}%`} 
           icon={<ShieldCheck className="text-cyan-400" />} 
-          trend="IoT 預言機在線" 
-          status="數據來源驗證"
-          onClick={() => onVerifyOracle()}
+          trend="IoT 預言機上鏈" 
+          status="數據驗證"
+          onClick={onVerifyOracle}
           clickable
         />
         <StatusCard 
@@ -213,34 +298,30 @@ const DashboardView = ({ revenue, soh, selectedBbu, onVerifyOracle, onViewVc, is
           value={`${(selectedBbu.rentFee/100 * (isGridEmergency ? 2.5 : 1)).toFixed(2)} MW`} 
           icon={<Activity className="text-yellow-400" />} 
           trend={isGridEmergency ? "VPP 緊急介入" : "動態介入中"} 
-          status={isGridEmergency ? "獲利加倍" : "VPP 模式"} 
+          status={isGridEmergency ? "收益翻倍" : "需量反應"} 
         />
         <StatusCard 
-          title="數位身分證 (VC)" 
+          title="數位身分 (SSI)" 
           value={selectedBbu.id} 
           icon={<Fingerprint className="text-purple-400" />} 
-          trend="SSI 自主身分" 
+          trend="可驗證憑證 (VC)" 
           status="查看憑證"
-          onClick={() => onViewVc()}
+          onClick={onViewVc}
           clickable
         />
       </div>
 
       <div className="bg-slate-900/80 border border-slate-800 rounded-[32px] p-8 backdrop-blur-md relative overflow-hidden">
-        {isGridEmergency && (
-          <div className="absolute top-0 left-0 w-full h-1 bg-red-500 animate-pulse shadow-[0_0_15px_red]" />
-        )}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h3 className={`text-xl font-bold flex items-center gap-2 ${isGridEmergency ? 'text-red-400' : 'text-white'}`}>
-              {isGridEmergency && <AlertTriangle className="animate-bounce" size={20} />}
-              算力即流動性 (PAL) 即時數據流
+            <h3 className="text-xl font-bold text-white flex items-center gap-2">
+              <BrainCircuit className="text-cyan-400" size={20} /> AI 物理診斷與收益模擬
             </h3>
-            <p className="text-xs text-slate-500 uppercase font-black tracking-widest mt-1">資產節點：{selectedBbu.location} | 機架 Rack-042</p>
+            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">環境快照：{selectedBbu.location} | AI 分析狀態：{selectedBbu.aiStatus}</p>
           </div>
           <div className="flex gap-2">
-            <span className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest border ${isGridEmergency ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
-              {isGridEmergency ? 'ERCOT 緊急狀態' : selectedBbu.risk}
+            <span className={`px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest border ${isGridEmergency ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-slate-800 border-slate-700 text-slate-400'}`}>
+              {isGridEmergency ? 'ERCOT 危急' : 'AI 常規監測'}
             </span>
           </div>
         </div>
@@ -256,7 +337,7 @@ const DashboardView = ({ revenue, soh, selectedBbu, onVerifyOracle, onViewVc, is
               <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
               <XAxis dataKey="name" stroke="#475569" fontSize={10} axisLine={false} tickLine={false} />
               <YAxis hide />
-              <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '16px', fontSize: '12px', color: '#fff'}} />
+              <Tooltip contentStyle={{backgroundColor: '#0f172a', border: 'none', borderRadius: '16px', fontSize: '12px'}} />
               <Area type="monotone" dataKey="value" stroke={isGridEmergency ? "#ef4444" : "#22d3ee"} strokeWidth={4} fillOpacity={1} fill="url(#colorValue)" />
             </AreaChart>
           </ResponsiveContainer>
@@ -265,70 +346,100 @@ const DashboardView = ({ revenue, soh, selectedBbu, onVerifyOracle, onViewVc, is
     </div>
 
     <div className="lg:col-span-4 space-y-6">
-      <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[32px] p-8 text-white relative overflow-hidden group shadow-2xl shadow-indigo-500/20">
-        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
-          <Cpu size={160} />
-        </div>
-        <h3 className="text-2xl font-black mb-2 italic tracking-tighter uppercase">AI 推論邊緣保護</h3>
-        <p className="text-blue-100 text-sm mb-6 leading-relaxed italic">IoT 預言機偵測到機房溫度：{isGridEmergency ? '42' : '28'}°C。BBU 容量已優先鎖定冷卻幫浦供電。</p>
-        <div className="flex justify-between items-end">
-          <div>
-            <p className="text-[10px] uppercase font-bold opacity-60 font-black tracking-widest">電力優先權</p>
-            <p className="text-xl font-bold">L1 - CRITICAL</p>
-          </div>
-          <button className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-bold hover:bg-white/30 transition-all border border-white/20">查看策略</button>
+      <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-6 space-y-4">
+        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2 underline decoration-cyan-500/30 underline-offset-4">
+           AI 即時診斷日誌
+        </h4>
+        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+          <AiLog type="info" time="10:42:01" text="[物理層] IoT 預言機完成數據包簽名 0x82f...a12c" />
+          <AiLog type="success" time="10:42:05" text="[能源層] 推論任務湧入，已自動優化 BBU 輸出功率" />
+          <AiLog type="warning" time="10:43:12" text="[環境層] 偵測到室溫升高 2.4°C，建議調整冷卻頻率" />
+          <AiLog type="info" time="10:44:00" text="[金融層] RWA 資產 SoH 快照已同步至區塊鏈" />
         </div>
       </div>
 
-      <div className="bg-slate-900/80 border border-slate-800 rounded-[32px] p-6 space-y-4">
-        <h4 className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-          <MapPin size={12} className="text-red-500" /> 即時物理環境快照 (Plano)
-        </h4>
-        <div className="p-4 bg-slate-950/50 rounded-2xl border border-slate-800 text-[10px] font-mono text-slate-400 space-y-1">
-          <p>DEVICE_ID: {selectedBbu.id}</p>
-          <p>TEMP: {isGridEmergency ? '42.8' : '27.4'} C</p>
-          <p>HUMIDITY: 45.2%</p>
-          <p>NETWORK_LATENCY: 12ms</p>
-          <p className="text-cyan-500">SIGNATURE: 0x82f...a12c (Verified)</p>
+      <div className="bg-gradient-to-br from-indigo-600 to-blue-700 rounded-[32px] p-8 text-white relative overflow-hidden group shadow-2xl">
+        <div className="absolute -right-4 -bottom-4 opacity-10 group-hover:scale-110 transition-transform">
+          <BrainCircuit size={160} />
+        </div>
+        <h3 className="text-xl font-black mb-2 italic tracking-tighter uppercase uppercase font-black">AI 推論優先權鎖定</h3>
+        <p className="text-blue-100 text-xs mb-6 leading-relaxed italic">AI 已根據 ERCOT 即時負載，自動預留 20% BBU 容量用於冷卻系統保護，防止昂貴 GPU 熱崩潰。</p>
+        <div className="flex justify-between items-end">
+          <div>
+            <p className="text-[8px] uppercase font-black opacity-60 tracking-widest">目前策略</p>
+            <p className="text-lg font-bold">L1 - 極速保護</p>
+          </div>
+          <button className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-xl text-[10px] font-black hover:bg-white/30 transition-all border border-white/20 uppercase tracking-widest">詳情</button>
         </div>
       </div>
     </div>
   </div>
 );
 
+// --- 分頁組件：發展藍圖 (Roadmap) ---
+const RoadmapView = () => (
+  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {ROADMAP_STEPS.map((step, idx) => (
+      <div key={idx} className={`bg-slate-900 border p-8 rounded-[32px] relative overflow-hidden flex flex-col ${step.status === 'ACTIVE' ? 'border-cyan-500 shadow-lg shadow-cyan-500/10' : 'border-slate-800'}`}>
+        {step.status === 'COMPLETED' && <div className="absolute top-4 right-4 text-green-500"><CheckCircle2 size={24} /></div>}
+        {step.status === 'ACTIVE' && <div className="absolute top-4 right-4 text-cyan-400 animate-pulse font-black text-[10px] tracking-widest uppercase">執行中</div>}
+        
+        <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.3em] mb-2">{step.stage}</p>
+        <h4 className="text-lg font-black text-white mb-1 uppercase tracking-tighter italic">{step.title}</h4>
+        <p className="text-[10px] text-slate-400 font-bold mb-6 italic">{step.period}</p>
+        
+        <div className="space-y-4 flex-grow">
+          {step.items.map((item, i) => (
+            <div key={i} className="flex gap-3 items-start">
+              <div className={`w-1.5 h-1.5 rounded-full mt-1.5 ${step.status === 'COMPLETED' ? 'bg-green-500' : step.status === 'ACTIVE' ? 'bg-cyan-500' : 'bg-slate-700'}`} />
+              <p className="text-[11px] text-slate-300 font-bold leading-relaxed">{item}</p>
+            </div>
+          ))}
+        </div>
+        
+        {step.status === 'ACTIVE' && (
+          <div className="mt-8 p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl flex items-center gap-3">
+             <Info className="text-cyan-400 shrink-0" size={16} />
+             <p className="text-[9px] text-cyan-400 font-black tracking-widest leading-tight italic uppercase">PoC 正在演示：RWA 代幣化與零門檻訂閱。</p>
+          </div>
+        )}
+      </div>
+    ))}
+  </motion.div>
+);
+
 // --- 分頁：資產金融 ---
 const FinanceView = ({ selectedBbu, onSimulate, showPaymentAnimation, sinkingFund }) => (
   <motion.div initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} className="grid grid-cols-1 md:grid-cols-2 gap-8 relative">
-    {/* 收租分流動畫 */}
     <AnimatePresence>
       {showPaymentAnimation && (
         <motion.div 
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
           className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 backdrop-blur-sm"
         >
-          <div className="bg-slate-900 p-12 rounded-[40px] border border-cyan-500/30 text-center shadow-2xl">
+          <div className="bg-slate-900 p-12 rounded-[40px] border border-cyan-500/30 text-center shadow-2xl max-w-lg w-full">
             <motion.div 
               initial={{ y: 20 }} animate={{ y: 0 }}
               className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-green-500/50"
             >
               <DollarSign className="text-green-400" size={40} />
             </motion.div>
-            <h4 className="text-2xl font-black text-white mb-2 tracking-tighter uppercase uppercase">租金收繳與智能分流演示</h4>
-            <p className="text-slate-500 mb-8 uppercase font-black text-xs tracking-widest italic tracking-widest">資產：{selectedBbu.client} | 金額：${selectedBbu.rentFee}</p>
-            <div className="flex justify-center gap-10">
+            <h4 className="text-2xl font-black text-white mb-2 uppercase tracking-tighter">零門檻 (Zero CAPEX) 租金清算</h4>
+            <p className="text-slate-500 mb-8 font-black text-xs tracking-widest italic uppercase">資產：{selectedBbu.client} | 智慧分流執行中</p>
+            <div className="flex justify-center gap-12">
               <div className="text-center">
-                <div className="w-1.5 h-20 bg-slate-800 mx-auto rounded-full overflow-hidden relative">
-                   <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} transition={{ duration: 1 }} className="w-full bg-cyan-500 absolute bottom-0" />
+                <div className="w-1.5 h-24 bg-slate-800 mx-auto rounded-full overflow-hidden relative">
+                   <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} transition={{ duration: 1 }} className="w-full bg-cyan-500 absolute bottom-0 shadow-[0_0_10px_#06b6d4]" />
                 </div>
-                <p className="text-cyan-400 font-bold mt-2">$2000 (80%)</p>
-                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">投資人分潤</p>
+                <p className="text-cyan-400 font-black mt-3">$2000</p>
+                <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mt-1">投資人/SPV 分潤</p>
               </div>
               <div className="text-center">
-                <div className="w-1.5 h-20 bg-slate-800 mx-auto rounded-full overflow-hidden relative">
-                   <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} transition={{ duration: 1, delay: 0.5 }} className="w-full bg-orange-500 absolute bottom-0" />
+                <div className="w-1.5 h-24 bg-slate-800 mx-auto rounded-full overflow-hidden relative">
+                   <motion.div initial={{ height: 0 }} animate={{ height: '100%' }} transition={{ duration: 1, delay: 0.5 }} className="w-full bg-orange-500 absolute bottom-0 shadow-[0_0_10px_#f97316]" />
                 </div>
-                <p className="text-orange-400 font-bold mt-2">$500 (20%)</p>
-                <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest">重置基金儲備</p>
+                <p className="text-orange-400 font-black mt-3">$500</p>
+                <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mt-1">重置基金 (20%)</p>
               </div>
             </div>
           </div>
@@ -340,20 +451,20 @@ const FinanceView = ({ selectedBbu, onSimulate, showPaymentAnimation, sinkingFun
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-3">
           <RefreshCcw className="text-orange-400" />
-          <h3 className="text-xl font-bold text-white uppercase tracking-tight">資產重置基金 (Sinking Fund)</h3>
+          <h3 className="text-xl font-black text-white uppercase tracking-tight italic">資產重置基金 (Sinking Fund)</h3>
         </div>
         <button 
           onClick={onSimulate}
-          className="bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-orange-500/30 transition-all active:scale-95"
+          className="bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest border border-orange-500/20 transition-all active:scale-95 shadow-lg shadow-orange-500/5"
         >
-          模擬收租分流
+          模擬訂閱制分流 (SME)
         </button>
       </div>
       <div className="space-y-8">
         <div>
           <div className="flex justify-between text-[10px] mb-3 font-black text-slate-500 uppercase tracking-widest">
-            <span>2028 年硬體汰換儲備進度</span>
-            <span className="text-orange-400">已達成 {((sinkingFund/150000)*100).toFixed(1)}%</span>
+            <span>2028 年硬體汰換儲備 (全自動撥備)</span>
+            <span className="text-orange-400">達成率 {((sinkingFund/150000)*100).toFixed(1)}%</span>
           </div>
           <div className="w-full h-3 bg-slate-800 rounded-full overflow-hidden">
             <motion.div initial={{ width: 0 }} animate={{ width: `${(sinkingFund/150000)*100}%` }} className="h-full bg-gradient-to-r from-orange-500 to-yellow-400 shadow-[0_0_15px_rgba(249,115,22,0.5)]" />
@@ -361,18 +472,18 @@ const FinanceView = ({ selectedBbu, onSimulate, showPaymentAnimation, sinkingFun
         </div>
         <div className="grid grid-cols-2 gap-4 text-center">
           <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-inner">
-            <p className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">當前儲備總額</p>
+            <p className="text-[10px] text-slate-500 font-black mb-1 uppercase tracking-widest">目前準備金</p>
             <p className="text-lg font-mono text-white">${sinkingFund.toLocaleString()}</p>
           </div>
           <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800 shadow-inner">
-            <p className="text-[10px] text-slate-500 font-bold mb-1 uppercase tracking-widest">汰換執行條件</p>
-            <p className="text-lg font-bold text-red-400">SoH &lt; 80%</p>
+            <p className="text-[10px] text-slate-500 font-black mb-1 uppercase tracking-widest">資產狀態</p>
+            <p className="text-lg font-black text-green-400">營運中</p>
           </div>
         </div>
         <div className="p-4 bg-orange-950/20 border border-orange-500/20 rounded-2xl flex items-start gap-3">
           <Lock className="text-orange-500 shrink-0" size={16} />
-          <p className="text-[10px] text-slate-400 italic leading-relaxed uppercase font-black opacity-80">
-            財務安全鎖定：此基金資產鎖定於智能合約 0xPTE...SINK，僅能由 IoT 預言機偵測到硬體衰減時觸發設備採購，確保資金不被挪用。
+          <p className="text-[9px] text-slate-400 italic leading-relaxed uppercase font-black tracking-widest">
+            資金鏈安全保證：此基金儲備於智能合約中，僅當 AI 診斷出 SoH &lt; 80% 時自動撥款採購系統電最新 BBU 模組，確保資產價值 100% 回收。
           </p>
         </div>
       </div>
@@ -381,46 +492,46 @@ const FinanceView = ({ selectedBbu, onSimulate, showPaymentAnimation, sinkingFun
     <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-8 shadow-2xl">
       <div className="flex items-center gap-3 mb-8">
         <BarChart3 className="text-purple-400" />
-        <h3 className="text-xl font-bold text-white uppercase tracking-tight font-black">RWA 實體資產代幣化門戶</h3>
+        <h3 className="text-xl font-black text-white uppercase tracking-tight font-black italic">RWA 資產隔離與代幣化</h3>
       </div>
       <div className="space-y-6">
-        <div className="bg-gradient-to-r from-purple-900/20 to-indigo-900/20 p-6 rounded-2xl border border-purple-500/20 relative">
+        <div className="bg-gradient-to-r from-purple-900/10 to-indigo-900/10 p-6 rounded-2xl border border-purple-500/20 relative">
           <div className="flex justify-between items-center mb-4">
-            <p className="text-xs font-bold text-purple-400 uppercase tracking-widest">資產編號：{selectedBbu.id}</p>
-            <span className="bg-purple-500 text-white text-[10px] px-3 py-1 rounded-full font-black shadow-lg shadow-purple-500/30">預期年化 {selectedBbu.yield}%</span>
+            <p className="text-[10px] font-black text-purple-400 uppercase tracking-widest">SPV 隔離載體：PTE-TX-RE-042</p>
+            <span className="bg-purple-500 text-white text-[9px] px-3 py-1 rounded-full font-black shadow-lg shadow-purple-500/30">預期 APY {selectedBbu.yield}%</span>
           </div>
-          <p className="text-3xl font-black text-white mb-2">425.00 <span className="text-sm font-normal text-slate-500 uppercase tracking-tighter italic">/ 500 份額已鑄造</span></p>
-          <div className="flex gap-4 mt-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-t border-slate-800 pt-4">
-            <span className="flex items-center gap-1 text-cyan-400"><DollarSign size={10} /> 每月總租金: ${selectedBbu.rentFee}</span>
-            <span className="flex items-center gap-1"><ShieldCheck size={10} /> 剩餘期限: 42 個月</span>
+          <p className="text-3xl font-black text-white mb-2 tracking-tighter italic">425.00 <span className="text-sm font-normal text-slate-500 uppercase tracking-widest font-bold">/ 500 UNITS</span></p>
+          <div className="flex gap-4 mt-4 text-[9px] font-black text-slate-500 uppercase tracking-widest border-t border-slate-800 pt-4">
+            <span className="flex items-center gap-1 text-cyan-400 italic">資產抵押率: 150%</span>
+            <span className="flex items-center gap-1 italic">監管狀態: 合規 (US REG D)</span>
           </div>
         </div>
         <div className="flex gap-4">
-          <button className="flex-1 bg-cyan-500 py-4 rounded-2xl text-slate-950 font-black text-sm hover:shadow-[0_0_25px_rgba(34,211,238,0.5)] transition-all uppercase tracking-widest">贊助此顆 BBU</button>
-          <button className="flex-1 bg-slate-800 py-4 rounded-2xl text-white font-black text-sm border border-slate-700 hover:bg-slate-700 transition-all uppercase tracking-widest">查看鏈上合約</button>
+          <button className="flex-1 bg-cyan-500 py-4 rounded-2xl text-slate-950 font-black text-xs hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all uppercase tracking-widest italic">贊助實體資產</button>
+          <button className="flex-1 bg-slate-800 py-4 rounded-2xl text-white font-black text-xs border border-slate-700 hover:bg-slate-700 transition-all uppercase tracking-widest italic tracking-widest">查看鏈上合約</button>
         </div>
       </div>
     </div>
   </motion.div>
 );
 
-// --- 輔助組件：電網韌性 ---
+// --- 輔助組件：電網韌性 (加強 VPP 收益邏輯) ---
 const GridView = ({ isEmergency, onToggle }) => (
-  <div className={`min-h-[500px] rounded-[32px] border transition-all duration-700 p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl ${isEmergency ? 'bg-red-950/20 border-red-500' : 'bg-slate-900 border-slate-800'}`}>
+  <div className={`min-h-[500px] rounded-[32px] border transition-all duration-700 p-8 flex flex-col items-center justify-center relative overflow-hidden shadow-2xl ${isEmergency ? 'bg-red-950/20 border-red-500 shadow-[inset_0_0_100px_rgba(239,68,68,0.1)]' : 'bg-slate-900 border-slate-800'}`}>
     {isEmergency && (
-       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/5 to-transparent animate-pulse" />
+       <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-red-500/10 to-transparent animate-pulse" />
     )}
     <div className={`w-28 h-28 rounded-full flex items-center justify-center mb-8 border transition-all duration-500 ${isEmergency ? 'bg-red-500/10 border-red-500 animate-bounce shadow-[0_0_50px_rgba(239,68,68,0.3)]' : 'bg-yellow-500/10 border-yellow-500 shadow-[0_0_30px_rgba(234,179,8,0.1)]'}`}>
       <AlertTriangle className={isEmergency ? 'text-red-500' : 'text-yellow-500'} size={56} />
     </div>
     <div className="text-center z-10 space-y-4 max-w-xl">
       <h3 className={`text-4xl font-black italic uppercase tracking-tighter transition-colors duration-500 ${isEmergency ? 'text-red-500' : 'text-white'}`}>
-        ERCOT 電網調度實戰模擬
+        VPP 虛擬電廠營運實測
       </h3>
       <p className="text-slate-400 text-sm leading-relaxed italic uppercase font-black tracking-widest">
         {isEmergency 
-          ? '警告：偵測到德州電網頻率大幅波動。系統已將 BBU 自動切換至虛擬電廠 (VPP) 高頻放電模式，收益率即時提升 500%！' 
-          : '當前電網穩定。BBU 處於 PAL 韌性保護模式，持續採集 IoT 數據並生成綠色電力憑證。'}
+          ? '⚠️ 系統檢測到德州 ERCOT 電網負載尖峰 (Peak)。AI 已自動將德州境內所有 PTE 節點切換至「饋電模式」，目前正在賺取電力流動性獎勵。' 
+          : '當前電網穩定。BBU 處於電力韌性模式，協助 SME 客戶抵禦微小電壓跳變，同時採集 ESG 數據。'}
       </p>
     </div>
     
@@ -432,128 +543,86 @@ const GridView = ({ isEmergency, onToggle }) => (
          {isEmergency ? '解除電網緊急狀態' : '模擬 ERCOT 緊急狀態'}
        </button>
        <div className="flex gap-4">
-          <div className="bg-slate-800/80 px-4 py-2 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-700 flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${isEmergency ? 'bg-slate-600' : 'bg-green-500 animate-pulse'}`} /> 電網平衡
+          <div className="bg-slate-800/80 px-4 py-2 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border border-slate-700 flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isEmergency ? 'bg-slate-600' : 'bg-green-500 animate-pulse'}`} /> 能源韌性模式
           </div>
-          <div className="bg-slate-800/80 px-4 py-2 rounded-xl text-[10px] font-black text-slate-400 uppercase tracking-widest border border-slate-700 flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${isEmergency ? 'bg-red-500 animate-pulse' : 'bg-slate-600'}`} /> VPP 加速獲利中
+          <div className="bg-slate-800/80 px-4 py-2 rounded-xl text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border border-slate-700 flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isEmergency ? 'bg-red-500 animate-pulse' : 'bg-slate-600'}`} /> VPP 獎勵挖掘中
           </div>
        </div>
     </div>
   </div>
 );
 
-// --- 彈窗組件：Oracle 驗證 ---
+// --- 輔助組件 ---
+const AiLog = ({ type, time, text }) => (
+  <div className="flex gap-3 items-start p-3 bg-slate-950/30 rounded-xl border border-slate-900 group hover:border-cyan-500/20 transition-all">
+    <div className={`w-1 h-8 rounded-full ${type === 'error' ? 'bg-red-500' : type === 'warning' ? 'bg-orange-500' : type === 'success' ? 'bg-green-500' : 'bg-cyan-500'}`} />
+    <div className="flex-grow">
+      <p className="text-[8px] text-slate-500 font-black mb-1 italic uppercase tracking-widest">{time} | {type.toUpperCase()}</p>
+      <p className="text-[10px] text-slate-300 font-bold leading-tight">{text}</p>
+    </div>
+  </div>
+);
+
 const OracleModal = ({ isOpen, onClose, selectedBbu, soh }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
-        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-slate-900 border border-cyan-500/30 p-8 rounded-[40px] max-w-2xl w-full shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-cyan-500 to-transparent" />
-          <h4 className="text-2xl font-black text-white mb-6 flex items-center gap-3"><Fingerprint className="text-cyan-400" /> IoT 數據來源驗證 (Oracle Source)</h4>
-          <div className="space-y-6">
-            <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 font-mono text-xs space-y-4">
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-500">資產物理節點:</span>
-                <span className="text-white">Texas Plano Facility / Rack-042</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-500">感測器精度:</span>
-                <span className="text-white">Precision Level-5 (NIST Traceable)</span>
-              </div>
-              <div className="flex justify-between border-b border-slate-800 pb-2">
-                <span className="text-slate-500">當前讀值 (SoH):</span>
-                <span className="text-cyan-400 font-bold">{soh.toFixed(6)}%</span>
-              </div>
-              <div className="pt-2">
-                <p className="text-slate-500 mb-2">鏈上數位簽章 (BMS Signature):</p>
-                <p className="text-green-500 break-all bg-green-500/5 p-3 rounded-lg border border-green-500/20 leading-relaxed italic tracking-widest font-black uppercase tracking-widest text-[10px]">
-                  0x73d9e2a1b5c8f4e3d0a2c5b7f1e9d8c6b4a2e5f3c0d8a2b5c8f4e3d0a2c5b7f1e9d8c6... (VERIFIED BY CHAINLINK)
-                </p>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 italic leading-relaxed uppercase font-black opacity-60">
-              提示：此數據並非預設網頁文字，而是透過加密通道從實體 BMS 硬體每 2 秒更新一次，確保物理層與金融層的高度同步與透明。
-            </p>
-            <button onClick={onClose} className="w-full bg-slate-800 py-4 rounded-2xl font-black hover:bg-slate-700 transition-all uppercase tracking-widest uppercase tracking-widest text-white">關閉驗證視窗</button>
+        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-slate-900 border border-cyan-500/30 p-8 rounded-[40px] max-w-2xl w-full shadow-2xl relative">
+          <h4 className="text-2xl font-black text-white mb-6 flex items-center gap-3"><Fingerprint className="text-cyan-400" /> IoT 預言機物理驗證 (Oracle)</h4>
+          <div className="bg-slate-950 p-6 rounded-2xl border border-slate-800 font-mono text-[10px] space-y-4 text-slate-400">
+             <p>NODE_LOC: {selectedBbu.location} (Rack-042)</p>
+             <p>AUTH_SIGNER: 0xSYSGRATION_PLANO_BMS_GW</p>
+             <p className="text-cyan-400 font-bold underline">REALTIME_SOH: {soh.toFixed(6)}%</p>
+             <p className="text-green-500 break-all bg-green-500/5 p-3 rounded-lg border border-green-500/20 italic font-black uppercase tracking-widest text-[9px]">
+                SIGNATURE: 0x73d9e2a1b5c8f4e3d0a2c5b7f1e9d8c6b4a2e5f3c0d8a2b5c8f4e3d0a2c5b7f1e9d8c6 (VERIFIED)
+             </p>
           </div>
+          <button onClick={onClose} className="w-full mt-8 bg-slate-800 py-4 rounded-2xl font-black uppercase tracking-widest text-white hover:bg-slate-700 transition-all italic tracking-widest">關閉驗證視窗</button>
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
 );
 
-// --- 彈窗組件：VC 憑證 ---
 const VcModal = ({ isOpen, onClose, selectedBbu }) => (
   <AnimatePresence>
     {isOpen && (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/90 backdrop-blur-md">
-        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-slate-900 border border-purple-500/30 p-10 rounded-[40px] max-w-xl w-full shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-10 opacity-5">
-             <ShieldCheck size={200} />
+        <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-slate-900 border border-purple-500/30 p-10 rounded-[40px] max-w-xl w-full shadow-2xl">
+          <div className="text-center mb-8">
+            <CheckCircle2 className="text-purple-400 mx-auto mb-4" size={48} />
+            <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter">BBU 數位身分證 (SSI-VC)</h4>
+            <p className="text-purple-400 text-[10px] font-black uppercase tracking-[0.3em] mt-1 italic">Verifiable Credential Profile</p>
           </div>
-          <div className="text-center mb-10">
-            <div className="w-20 h-20 bg-purple-500/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-purple-500/50">
-              <CheckCircle2 className="text-purple-400" size={40} />
-            </div>
-            <h4 className="text-2xl font-black text-white uppercase tracking-tighter">BBU 數位身分證 (SSI-VC)</h4>
-            <p className="text-purple-400 text-xs font-bold uppercase tracking-[0.3em] mt-1">Verifiable Credential Profile</p>
+          <div className="space-y-4 text-xs font-bold text-slate-400">
+            <div className="flex justify-between border-b border-slate-800 pb-2"><span>DID:</span><span className="text-white">did:pte:tex:{selectedBbu.id}</span></div>
+            <div className="flex justify-between border-b border-slate-800 pb-2"><span>UL 認證:</span><span className="text-white">{selectedBbu.ulCert}</span></div>
+            <div className="flex justify-between border-b border-slate-800 pb-2"><span>部署日期:</span><span className="text-white">{selectedBbu.installDate}</span></div>
+            <div className="flex justify-between border-b border-slate-800 pb-2"><span>核發者:</span><span className="text-white italic tracking-widest">Sysgration Official VC Server</span></div>
           </div>
-          <div className="space-y-4 mb-10">
-            <VcField label="資產全局唯一 ID (DID)" val={`did:pte:tex:${selectedBbu.id}`} />
-            <VcField label="出廠認證標章" val={selectedBbu.ulCert} />
-            <VcField label="部署日期" val={selectedBbu.installDate} />
-            <VcField label="維修紀錄 (Immutable)" val="0 異常 / 1 定期檢查" />
-            <VcField label="核發機構" val="系統電集團 (PTE) 官方證書伺服器" />
-          </div>
-          <p className="text-[10px] text-center text-slate-500 uppercase font-black italic mb-8 uppercase font-black italic tracking-widest opacity-60">
-             此憑證已於數位發展部規範下完成分散式識別碼註冊，支援跨平台資產稽核。
-          </p>
-          <button onClick={onClose} className="w-full bg-purple-600 py-4 rounded-2xl font-black hover:bg-purple-500 transition-all uppercase tracking-widest uppercase tracking-widest text-white shadow-xl shadow-purple-600/20">確認憑證</button>
+          <button onClick={onClose} className="w-full mt-10 bg-purple-600 py-4 rounded-2xl font-black hover:bg-purple-500 transition-all uppercase tracking-widest text-white italic shadow-xl shadow-purple-600/20">確認憑證內容</button>
         </motion.div>
       </motion.div>
     )}
   </AnimatePresence>
 );
 
-const VcField = ({ label, val }) => (
-  <div className="flex justify-between items-center border-b border-slate-800 pb-3">
-    <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{label}</span>
-    <span className="text-sm font-bold text-white tracking-tight">{val}</span>
-  </div>
-);
-
 const StatusCard = ({ title, value, icon, trend, status, onClick, clickable }) => (
-  <button 
-    onClick={onClick}
-    disabled={!clickable}
-    className={`bg-slate-900 border border-slate-800 p-6 rounded-[28px] transition-all group relative overflow-hidden text-left w-full ${clickable ? 'hover:border-cyan-500 cursor-pointer' : ''}`}
-  >
+  <button onClick={onClick} disabled={!clickable} className={`bg-slate-900 border border-slate-800 p-6 rounded-[28px] transition-all group text-left w-full ${clickable ? 'hover:border-cyan-500 cursor-pointer shadow-lg shadow-cyan-500/5' : ''}`}>
     <div className="flex items-center gap-4 mb-4">
-      <div className="p-3 bg-slate-950 rounded-xl group-hover:scale-110 transition-transform border border-slate-800">{icon}</div>
+      <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">{icon}</div>
       <div>
         <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">{title}</p>
         <div className="flex items-center gap-2 mt-0.5">
-          <span className="text-[10px] font-bold text-green-400 uppercase">{trend}</span>
-          <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-bold tracking-tighter uppercase ${clickable ? 'bg-cyan-500 text-slate-950 shadow-sm' : 'bg-slate-800 text-slate-500'}`}>{status}</span>
+          <span className="text-[10px] font-bold text-green-400 uppercase tracking-tight">{trend}</span>
+          <span className={`text-[8px] px-1.5 py-0.5 rounded-md font-black tracking-tighter uppercase ${clickable ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-500'}`}>{status}</span>
         </div>
       </div>
     </div>
-    <p className="text-2xl font-black text-white tracking-tight">{value}</p>
+    <p className="text-2xl font-black text-white tracking-tighter">{value}</p>
   </button>
-);
-
-const NodeItem = ({ label, status, val }) => (
-  <div className="flex items-center justify-between p-3 bg-slate-950/50 rounded-2xl border border-slate-900 group hover:border-cyan-500/30 transition-all cursor-default">
-    <div className="flex items-center gap-3">
-      <div className={`w-2.5 h-2.5 rounded-full ${val > 90 ? 'bg-cyan-500 shadow-[0_0_10px_#22d3ee]' : val < 50 ? 'bg-orange-500 shadow-[0_0_10px_#f97316]' : 'bg-slate-700'}`} />
-      <div>
-        <p className="text-xs font-bold text-slate-200 tracking-tight">{label}</p>
-        <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">{status}</p>
-      </div>
-    </div>
-    <span className="text-xs font-mono text-slate-400 font-bold">{val}%</span>
-  </div>
 );
 
 export default PTENexus;
