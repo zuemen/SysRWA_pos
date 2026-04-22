@@ -232,6 +232,7 @@ const PTENexus = () => {
           </div>
         </nav>
 
+        {/* 核心內容分頁 */}
         <AnimatePresence mode="wait">
           {activeTab === 'DASHBOARD' && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
@@ -519,5 +520,3 @@ const StatusCard = ({ title, value, icon, trend, status, onClick, clickable, sho
 );
 
 export default PTENexus;
-/ /   u p d a t e   1 . 9 . 5  
- 
