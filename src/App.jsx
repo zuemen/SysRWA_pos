@@ -12,6 +12,7 @@ import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, BarChart, Bar, Legend
 } from 'recharts';
+import { FINANCIAL_CONSTANTS } from './utils/financialConstants';
 
 // --- 多資產 RWA 數據配置 ---
 const BBU_ASSETS = [
@@ -277,7 +278,7 @@ const PTENexus = () => {
             />
           )}
           {activeTab === 'REVENUE' && (
-            <RevenueView key="revenue" selectedBbu={selectedBbu} revenue={revenue} />
+            <RevenueView key="revenue" />
           )}
           {activeTab === 'ROADMAP' && (
              <RoadmapView key="roadmap" />
@@ -427,162 +428,127 @@ const FinanceView = ({ selectedBbu, onSimulate, showPaymentAnimation, sinkingFun
 );
 
 // --- 收益分析分頁 ---
-const RevenueView = ({ selectedBbu, revenue }) => {
-  const monthlyRental = BBU_ASSETS.reduce((sum, a) => sum + a.rentFee, 0);
-  const annualRental = monthlyRental * 12;
-  const secondaryEstimate = Math.round(annualRental * 0.12);
-  const esgEstimate = Math.round(annualRental * 0.04);
-  const totalAnnual = annualRental + secondaryEstimate + esgEstimate;
+const RevenueView = () => {
+  const { PRICING, FORECAST, POC_STREAM, CLIENT_BENEFITS } = FINANCIAL_CONSTANTS;
+  
+  // ARR Forecast Data for Section 2 (based on SME pricing $650 as per image)
+  const forecastData = [
+    { label: 'Year 1', value: FORECAST.YEARLY_UNITS.Y1 * PRICING.SME_MONTHLY * 12, display: '$780K', units: FORECAST.YEARLY_UNITS.Y1, color: '#1d4ed8' },
+    { label: 'Year 2', value: FORECAST.YEARLY_UNITS.Y2 * PRICING.SME_MONTHLY * 12, display: '$3.9M', units: FORECAST.YEARLY_UNITS.Y2, color: '#1d4ed8' },
+    { label: 'Year 3', value: FORECAST.YEARLY_UNITS.Y3 * PRICING.SME_MONTHLY * 12, display: '$15.6M', units: FORECAST.YEARLY_UNITS.Y3, color: '#065f46' },
+  ];
+  const maxForecast = forecastData[2].value;
+
+  // PoC Current Stream Calculations (based on weighted average $2300)
+  const pocMonthlyRental = POC_STREAM.UNITS * PRICING.POC_AVERAGE_MONTHLY;
+  const pocAnnualRental = pocMonthlyRental * 12;
+  const pocEsgMonthly = POC_STREAM.UNITS * POC_STREAM.ESG_CARBON_CREDIT_PER_UNIT_MONTHLY;
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8">
-      {/* 三大收益流概覽 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <RevenueStreamCard
-          icon={<Landmark className="text-cyan-400" size={28} />}
-          title="設備租賃收益"
-          subtitle="主力穩定現金流"
-          monthly={`$${monthlyRental.toLocaleString()}`}
-          annual={`$${annualRental.toLocaleString()}`}
-          color="cyan"
-          desc="以長期合約為基底，NVIDIA、台積電等級企業客戶持續付租，每月固定現金流入，可預期性最高。"
-          badge="核心收益"
-        />
-        <RevenueStreamCard
-          icon={<Recycle className="text-green-400" size={28} />}
-          title="二次壽命轉售"
-          subtitle="電池退役後的第二人生"
-          monthly={`$${Math.round(secondaryEstimate/12).toLocaleString()}`}
-          annual={`$${secondaryEstimate.toLocaleString()}`}
-          color="green"
-          desc="SoH 衰退至 80% 後，電池進入充電樁/儲能二級市場，平均殘值回收率達 60-70%，形成額外非線性收益。"
-          badge="資產回收"
-        />
-        <RevenueStreamCard
-          icon={<Leaf className="text-emerald-400" size={28} />}
-          title="ESG 碳權收益"
-          subtitle="可驗證減碳憑證商業化"
-          monthly={`$${Math.round(esgEstimate/12).toLocaleString()}`}
-          annual={`$${esgEstimate.toLocaleString()}`}
-          color="emerald"
-          desc="IoT 數據上鏈後形成可驗證碳足跡報告，通過第三方認證的碳憑證可在碳市場交易，開啟合規增益收益。"
-          badge="ESG 加成"
-        />
-      </div>
-
-      {/* 年度總收益摘要 */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-8 shadow-2xl">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-12">
+      {/* PoC 收益基準摘要 (Optional but good for completeness based on specs) */}
+      <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-6 hidden md:block">
+        <div className="flex justify-between items-center">
           <div>
-            <h3 className="text-2xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3"><TrendingUp className="text-cyan-400" /> 年度多元收益預測</h3>
-            <p className="text-[10px] text-slate-500 uppercase font-black tracking-widest mt-1">三組 BBU 資產組合 | 8 年展望</p>
+            <h4 className="text-xs font-black text-cyan-400 uppercase tracking-widest mb-1">PoC 展示基準 (3台 BBU)</h4>
+            <p className="text-[10px] text-slate-500 font-bold italic">加權平均月租: ${PRICING.POC_AVERAGE_MONTHLY.toLocaleString()} | 租賃年收: ${pocAnnualRental.toLocaleString()}</p>
           </div>
-          <div className="bg-slate-950 px-6 py-3 rounded-2xl border border-slate-800">
-            <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">首年預估總收益</p>
-            <p className="text-2xl font-black text-green-400 font-mono">${totalAnnual.toLocaleString()}</p>
+          <div className="flex gap-4">
+            <div className="text-right">
+              <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">二次轉售年收</p>
+              <p className="text-sm font-black text-white font-mono">${POC_STREAM.SECONDARY_RESALE_ANNUAL.toLocaleString()}</p>
+            </div>
+            <div className="text-right border-l border-slate-800 pl-4">
+              <p className="text-[9px] text-slate-500 uppercase font-black tracking-widest">ESG 碳權收益</p>
+              <p className="text-sm font-black text-emerald-400 font-mono">${pocEsgMonthly.toLocaleString()}/月</p>
+            </div>
           </div>
-        </div>
-        <div className="h-[260px]">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={REVENUE_PROJECTION} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" vertical={false} />
-              <XAxis dataKey="year" stroke="#475569" fontSize={10} axisLine={false} tickLine={false} />
-              <YAxis stroke="#475569" fontSize={10} axisLine={false} tickLine={false} tickFormatter={v => `$${(v/1000).toFixed(0)}k`} />
-              <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #1e293b', borderRadius: '16px', fontSize: '11px', color: '#fff' }} formatter={(v, name) => [`$${v.toLocaleString()}`, name]} />
-              <Legend wrapperStyle={{ fontSize: '10px', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.1em' }} />
-              <Bar dataKey="租賃收益" stackId="a" fill="#22d3ee" radius={[0,0,0,0]} />
-              <Bar dataKey="二次市場" stackId="a" fill="#22c55e" radius={[0,0,0,0]} />
-              <Bar dataKey="ESG碳權" stackId="a" fill="#6ee7b7" radius={[4,4,0,0]} />
-            </BarChart>
-          </ResponsiveContainer>
         </div>
       </div>
 
-      {/* ROI 比較 */}
-      <div className="bg-slate-900 border border-slate-800 rounded-[32px] p-8 shadow-2xl">
-        <h3 className="text-xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3 mb-6"><Target className="text-purple-400" /> 投報率比較：傳統 vs BBU RWA</h3>
-        <div className="space-y-3">
-          {ROI_COMPARISON.map((item, i) => (
-            <div key={i} className="flex items-center gap-4">
-              <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest w-24 shrink-0">{item.name}</span>
-              <div className="flex-1 h-6 bg-slate-950 rounded-xl overflow-hidden border border-slate-800 relative">
+      {/* ① 客戶端：財務負擔結構性改善 */}
+      <div className="bg-[#fcfbf9] rounded-[40px] p-10 border border-stone-200">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-1.5 h-7 bg-blue-700 rounded-full" />
+          <h2 className="text-2xl font-black text-slate-900 tracking-tighter">① 客戶端：財務負擔結構性改善</h2>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          {/* Card 1: Depreciation Avoidance */}
+          <div className="bg-[#f8f9fb] p-10 rounded-[32px] border border-slate-100 shadow-sm">
+            <h3 className="text-5xl font-black text-blue-700 mb-4 font-mono tracking-tighter">${CLIENT_BENEFITS.DEPRECIATION_AVOIDANCE_ANNUAL.toLocaleString()}</h3>
+            <p className="text-xl font-black text-slate-800 mb-6">年折舊負擔規避</p>
+            <p className="text-slate-500 text-lg leading-snug font-medium">CAPEX 轉 OPEX，設備成本從資產負債表移除</p>
+          </div>
+          
+          {/* Card 2: Power Efficiency */}
+          <div className="bg-[#f8f9fb] p-10 rounded-[32px] border border-slate-100 shadow-sm">
+            <h3 className="text-5xl font-black text-blue-700 mb-4 font-mono tracking-tighter">+{(CLIENT_BENEFITS.POWER_EFFICIENCY.IMPROVEMENT * 100).toFixed(1)}%</h3>
+            <p className="text-xl font-black text-slate-800 mb-6">電力使用效率提升</p>
+            <p className="text-slate-500 text-lg leading-snug font-medium">{(CLIENT_BENEFITS.POWER_EFFICIENCY.CURRENT * 100).toFixed(1)}% vs {(CLIENT_BENEFITS.POWER_EFFICIENCY.PREVIOUS * 100).toFixed(1)}%，直接降低每月電費支出</p>
+          </div>
+          
+          {/* Card 3: Deployment Time */}
+          <div className="bg-[#f8f9fb] p-10 rounded-[32px] border border-slate-100 shadow-sm">
+            <h3 className="text-5xl font-black text-blue-700 mb-4 font-mono tracking-tighter">{(CLIENT_BENEFITS.DEPLOYMENT_TIME.REDUCTION_RATE * 100).toFixed(0)}%</h3>
+            <p className="text-xl font-black text-slate-800 mb-6">部署交期縮短</p>
+            <p className="text-slate-500 text-lg leading-snug font-medium">{CLIENT_BENEFITS.DEPLOYMENT_TIME.PREVIOUS_WEEKS} 週 → {CLIENT_BENEFITS.DEPLOYMENT_TIME.CURRENT_WEEKS} 週，加速客戶資料中心上線時程</p>
+          </div>
+        </div>
+
+        <div className="bg-[#f3f2ee] p-8 rounded-3xl border border-stone-200 shadow-inner">
+          <p className="text-slate-700 text-lg leading-relaxed font-medium">
+            訂閱制另一個隱性效益：<span className="font-black text-slate-900 underline underline-offset-4 decoration-blue-500/30">維修、更換、SoH 監控全數內含於月費</span>，客戶不再承擔設備老化的不確定支出風險，財務預測更為穩定。
+          </p>
+        </div>
+      </div>
+
+      {/* ② 系統電：從一次性收入 -> 可預測 ARR */}
+      <div className="bg-[#fcfbf9] rounded-[40px] p-10 border border-stone-200">
+        <div className="flex items-center gap-3 mb-10">
+          <div className="w-1.5 h-7 bg-emerald-600 rounded-full" />
+          <h2 className="text-2xl font-black text-slate-900 tracking-tighter">② 系統電：從一次性收入 → 可預測 ARR</h2>
+        </div>
+
+        <div className="bg-[#f3f2ee] p-6 rounded-2xl border border-stone-200 mb-12">
+          <p className="text-slate-700 text-lg font-medium">
+            假設每台 BBU 訂閱月費 <span className="font-black text-slate-900">${PRICING.SME_MONTHLY}/月</span>，以德州 SME 市場為起點進行保守估算：
+          </p>
+        </div>
+
+        <div className="space-y-12 px-6">
+          {forecastData.map((item, idx) => (
+            <div key={idx} className="flex flex-col md:flex-row md:items-center gap-4">
+              <span className="w-24 text-xl font-black text-slate-600">{item.label}</span>
+              <div className="flex-1 bg-slate-100 h-6 rounded-full overflow-hidden border border-slate-200 shadow-inner">
                 <motion.div
                   initial={{ width: 0 }}
-                  animate={{ width: `${(item.roi / 14) * 100}%` }}
-                  transition={{ duration: 0.8, delay: i * 0.1 }}
-                  className="h-full rounded-xl flex items-center justify-end pr-3"
+                  whileInView={{ width: `${(item.value / maxForecast) * 100}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1.2, ease: "circOut", delay: idx * 0.1 }}
+                  className="h-full rounded-full"
                   style={{ backgroundColor: item.color }}
-                >
-                  <span className="text-[9px] font-black text-slate-950 whitespace-nowrap">{item.roi}%</span>
-                </motion.div>
+                />
               </div>
-              <span className={`text-[9px] font-black uppercase tracking-widest w-12 shrink-0 ${item.risk === '低' || item.risk === '極低' ? 'text-green-400' : 'text-yellow-400'}`}>{item.risk}</span>
+              <div className="w-40 text-right">
+                <p className="text-2xl font-black text-slate-900 font-mono tracking-tighter">~{item.display}</p>
+                <p className="text-xs font-black text-slate-500 uppercase tracking-widest -mt-1">ARR</p>
+              </div>
             </div>
           ))}
         </div>
-        <p className="text-[9px] text-slate-600 italic mt-6 font-black uppercase tracking-widest">* APY 數值為預估值，實際收益受市場與設備狀況影響。BBU RWA 屬物理資產支撐，非純金融衍生品。</p>
-      </div>
 
-      {/* 投資人收益分潤說明 */}
-      <div className="bg-gradient-to-br from-cyan-900/20 to-blue-900/20 border border-cyan-500/20 rounded-[32px] p-8 shadow-2xl">
-        <h3 className="text-xl font-black text-white uppercase tracking-tighter italic flex items-center gap-3 mb-6"><PiggyBank className="text-cyan-400" /> 投資人月結算分潤模型</h3>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-slate-950/60 p-6 rounded-2xl border border-slate-800 text-center">
-            <p className="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-2">每月租金收入（三機合計）</p>
-            <p className="text-3xl font-black text-white font-mono">${monthlyRental.toLocaleString()}</p>
-            <p className="text-[9px] text-slate-500 italic mt-2 font-black uppercase">客戶付租金額</p>
+        <div className="mt-16 pt-8 border-t border-stone-200 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-slate-500 font-bold text-lg italic">
+            基準：Y1 = {FORECAST.YEARLY_UNITS.Y1} 台、Y2 = {FORECAST.YEARLY_UNITS.Y2} 台、Y3 = {FORECAST.YEARLY_UNITS.Y3} 台訂閱部署；{(FORECAST.SINKING_FUND_RATE * 100).toFixed(0)}% Sinking Fund 提撥後仍維持正現金流
+          </p>
+          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 rounded-full border border-emerald-200">
+            <TrendingUp size={16} className="text-emerald-600" />
+            <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">複合成長預測</span>
           </div>
-          <div className="bg-slate-950/60 p-6 rounded-2xl border border-cyan-500/20 text-center">
-            <p className="text-[9px] font-black text-cyan-400 uppercase tracking-widest mb-2">投資人分紅（80%）</p>
-            <p className="text-3xl font-black text-cyan-400 font-mono">${Math.round(monthlyRental * 0.8).toLocaleString()}</p>
-            <p className="text-[9px] text-slate-500 italic mt-2 font-black uppercase">每月自動分配至持份人</p>
-          </div>
-          <div className="bg-slate-950/60 p-6 rounded-2xl border border-orange-500/20 text-center">
-            <p className="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-2">設備更新準備金（20%）</p>
-            <p className="text-3xl font-black text-orange-400 font-mono">${Math.round(monthlyRental * 0.2).toLocaleString()}</p>
-            <p className="text-[9px] text-slate-500 italic mt-2 font-black uppercase">自動撥入 Sinking Fund</p>
-          </div>
-        </div>
-        <div className="mt-6 p-4 bg-cyan-500/5 border border-cyan-500/20 rounded-2xl flex items-start gap-3">
-          <Info className="text-cyan-400 shrink-0 mt-0.5" size={16} />
-          <p className="text-[10px] text-slate-300 italic leading-relaxed font-black uppercase tracking-widest">分潤流程 100% 由智能合約自動執行，無人工干預。投資人可隨時在區塊鏈瀏覽器查驗每筆分紅交易記錄，實現完全透明的資產管理。</p>
         </div>
       </div>
     </motion.div>
-  );
-};
-
-const RevenueStreamCard = ({ icon, title, subtitle, monthly, annual, color, desc, badge }) => {
-  const colorMap = {
-    cyan: 'border-cyan-500/30 shadow-cyan-500/5',
-    green: 'border-green-500/30 shadow-green-500/5',
-    emerald: 'border-emerald-500/30 shadow-emerald-500/5',
-  };
-  const badgeColor = {
-    cyan: 'bg-cyan-500/20 text-cyan-400 border-cyan-500/30',
-    green: 'bg-green-500/20 text-green-400 border-green-500/30',
-    emerald: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30',
-  };
-  return (
-    <div className={`bg-slate-900 border rounded-[32px] p-7 shadow-lg ${colorMap[color]}`}>
-      <div className="flex justify-between items-start mb-4">
-        <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">{icon}</div>
-        <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full border ${badgeColor[color]}`}>{badge}</span>
-      </div>
-      <h4 className="text-lg font-black text-white uppercase tracking-tighter italic mb-1">{title}</h4>
-      <p className="text-[10px] text-slate-500 font-bold italic mb-4">{subtitle}</p>
-      <div className="grid grid-cols-2 gap-3 mb-4">
-        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
-          <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">月收益</p>
-          <p className="text-base font-black text-white font-mono">{monthly}</p>
-        </div>
-        <div className="bg-slate-950 p-3 rounded-xl border border-slate-800 text-center">
-          <p className="text-[8px] text-slate-500 uppercase font-black tracking-widest mb-1">年收益</p>
-          <p className="text-base font-black text-white font-mono">{annual}</p>
-        </div>
-      </div>
-      <p className="text-[9px] text-slate-400 leading-relaxed italic font-bold">{desc}</p>
-    </div>
   );
 };
 
