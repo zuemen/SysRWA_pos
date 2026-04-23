@@ -467,84 +467,89 @@ const RevenueView = () => {
       </div>
 
       {/* ① 客戶端：財務負擔結構性改善 */}
-      <div className="bg-[#fcfbf9] rounded-[40px] p-10 border border-stone-200">
+      <div className="bg-slate-900/50 rounded-[40px] p-10 border border-slate-800 backdrop-blur-sm shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-blue-500/5 blur-[100px] -z-10" />
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-1.5 h-7 bg-blue-700 rounded-full" />
-          <h2 className="text-2xl font-black text-slate-900 tracking-tighter">① 客戶端：財務負擔結構性改善</h2>
+          <div className="w-1.5 h-7 bg-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)] rounded-full" />
+          <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">① 客戶端：財務負擔結構性改善</h2>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
           {/* Card 1: Depreciation Avoidance */}
-          <div className="bg-[#f8f9fb] p-10 rounded-[32px] border border-slate-100 shadow-sm">
-            <h3 className="text-5xl font-black text-blue-700 mb-4 font-mono tracking-tighter">${CLIENT_BENEFITS.DEPRECIATION_AVOIDANCE_ANNUAL.toLocaleString()}</h3>
-            <p className="text-xl font-black text-slate-800 mb-6">年折舊負擔規避</p>
-            <p className="text-slate-500 text-lg leading-snug font-medium">CAPEX 轉 OPEX，設備成本從資產負債表移除</p>
+          <div className="bg-slate-950/50 p-10 rounded-[32px] border border-slate-800 shadow-xl group hover:border-blue-500/30 transition-colors">
+            <h3 className="text-5xl font-black text-blue-400 mb-4 font-mono tracking-tighter group-hover:scale-105 transition-transform">${CLIENT_BENEFITS.DEPRECIATION_AVOIDANCE_ANNUAL.toLocaleString()}</h3>
+            <p className="text-xl font-black text-slate-200 mb-6 uppercase italic">年折舊負擔規避</p>
+            <p className="text-slate-400 text-lg leading-snug font-medium italic">CAPEX 轉 OPEX，設備成本從資產負債表移除</p>
           </div>
           
           {/* Card 2: Power Efficiency */}
-          <div className="bg-[#f8f9fb] p-10 rounded-[32px] border border-slate-100 shadow-sm">
-            <h3 className="text-5xl font-black text-blue-700 mb-4 font-mono tracking-tighter">+{(CLIENT_BENEFITS.POWER_EFFICIENCY.IMPROVEMENT * 100).toFixed(1)}%</h3>
-            <p className="text-xl font-black text-slate-800 mb-6">電力使用效率提升</p>
-            <p className="text-slate-500 text-lg leading-snug font-medium">{(CLIENT_BENEFITS.POWER_EFFICIENCY.CURRENT * 100).toFixed(1)}% vs {(CLIENT_BENEFITS.POWER_EFFICIENCY.PREVIOUS * 100).toFixed(1)}%，直接降低每月電費支出</p>
+          <div className="bg-slate-950/50 p-10 rounded-[32px] border border-slate-800 shadow-xl group hover:border-blue-500/30 transition-colors">
+            <h3 className="text-5xl font-black text-blue-400 mb-4 font-mono tracking-tighter group-hover:scale-105 transition-transform">+{(CLIENT_BENEFITS.POWER_EFFICIENCY.IMPROVEMENT * 100).toFixed(1)}%</h3>
+            <p className="text-xl font-black text-slate-200 mb-6 uppercase italic">電力使用效率提升</p>
+            <p className="text-slate-400 text-lg leading-snug font-medium italic">{(CLIENT_BENEFITS.POWER_EFFICIENCY.CURRENT * 100).toFixed(1)}% vs {(CLIENT_BENEFITS.POWER_EFFICIENCY.PREVIOUS * 100).toFixed(1)}%，直接降低每月電費支出</p>
           </div>
           
           {/* Card 3: Deployment Time */}
-          <div className="bg-[#f8f9fb] p-10 rounded-[32px] border border-slate-100 shadow-sm">
-            <h3 className="text-5xl font-black text-blue-700 mb-4 font-mono tracking-tighter">{(CLIENT_BENEFITS.DEPLOYMENT_TIME.REDUCTION_RATE * 100).toFixed(0)}%</h3>
-            <p className="text-xl font-black text-slate-800 mb-6">部署交期縮短</p>
-            <p className="text-slate-500 text-lg leading-snug font-medium">{CLIENT_BENEFITS.DEPLOYMENT_TIME.PREVIOUS_WEEKS} 週 → {CLIENT_BENEFITS.DEPLOYMENT_TIME.CURRENT_WEEKS} 週，加速客戶資料中心上線時程</p>
+          <div className="bg-slate-950/50 p-10 rounded-[32px] border border-slate-800 shadow-xl group hover:border-blue-500/30 transition-colors">
+            <h3 className="text-5xl font-black text-blue-400 mb-4 font-mono tracking-tighter group-hover:scale-105 transition-transform">{(CLIENT_BENEFITS.DEPLOYMENT_TIME.REDUCTION_RATE * 100).toFixed(0)}%</h3>
+            <p className="text-xl font-black text-slate-200 mb-6 uppercase italic">部署交期縮短</p>
+            <p className="text-slate-400 text-lg leading-snug font-medium italic">{CLIENT_BENEFITS.DEPLOYMENT_TIME.PREVIOUS_WEEKS} 週 → {CLIENT_BENEFITS.DEPLOYMENT_TIME.CURRENT_WEEKS} 週，加速客戶資料中心上線時程</p>
           </div>
         </div>
 
-        <div className="bg-[#f3f2ee] p-8 rounded-3xl border border-stone-200 shadow-inner">
-          <p className="text-slate-700 text-lg leading-relaxed font-medium">
-            訂閱制另一個隱性效益：<span className="font-black text-slate-900 underline underline-offset-4 decoration-blue-500/30">維修、更換、SoH 監控全數內含於月費</span>，客戶不再承擔設備老化的不確定支出風險，財務預測更為穩定。
+        <div className="bg-slate-950/80 p-8 rounded-3xl border border-slate-800 shadow-inner">
+          <p className="text-slate-300 text-lg leading-relaxed font-medium italic">
+            訂閱制另一個隱性效益：<span className="font-black text-white underline underline-offset-4 decoration-blue-500/50">維修、更換、SoH 監控全數內含於月費</span>，客戶不再承擔設備老化的不確定支出風險，財務預測更為穩定。
           </p>
         </div>
       </div>
 
       {/* ② 系統電：從一次性收入 -> 可預測 ARR */}
-      <div className="bg-[#fcfbf9] rounded-[40px] p-10 border border-stone-200">
+      <div className="bg-slate-900/50 rounded-[40px] p-10 border border-slate-800 backdrop-blur-sm shadow-2xl relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-64 h-64 bg-emerald-500/5 blur-[100px] -z-10" />
         <div className="flex items-center gap-3 mb-10">
-          <div className="w-1.5 h-7 bg-emerald-600 rounded-full" />
-          <h2 className="text-2xl font-black text-slate-900 tracking-tighter">② 系統電：從一次性收入 → 可預測 ARR</h2>
+          <div className="w-1.5 h-7 bg-emerald-500 shadow-[0_0_15px_rgba(16,185,129,0.5)] rounded-full" />
+          <h2 className="text-2xl font-black text-white tracking-tighter uppercase italic">② 系統電：從一次性收入 → 可預測 ARR</h2>
         </div>
 
-        <div className="bg-[#f3f2ee] p-6 rounded-2xl border border-stone-200 mb-12">
-          <p className="text-slate-700 text-lg font-medium">
-            假設每台 BBU 訂閱月費 <span className="font-black text-slate-900">${PRICING.SME_MONTHLY}/月</span>，以德州 SME 市場為起點進行保守估算：
+        <div className="bg-slate-950/80 p-6 rounded-2xl border border-slate-800 mb-12">
+          <p className="text-slate-300 text-lg font-medium italic">
+            假設每台 BBU 訂閱月費 <span className="font-black text-emerald-400">${PRICING.SME_MONTHLY}/月</span>，以德州 SME 市場為起點進行保守估算：
           </p>
         </div>
 
         <div className="space-y-12 px-6">
           {forecastData.map((item, idx) => (
-            <div key={idx} className="flex flex-col md:flex-row md:items-center gap-4">
-              <span className="w-24 text-xl font-black text-slate-600">{item.label}</span>
-              <div className="flex-1 bg-slate-100 h-6 rounded-full overflow-hidden border border-slate-200 shadow-inner">
+            <div key={idx} className="flex flex-col md:flex-row md:items-center gap-4 group">
+              <span className="w-24 text-xl font-black text-slate-500 group-hover:text-slate-300 transition-colors uppercase italic">{item.label}</span>
+              <div className="flex-1 bg-slate-950 h-6 rounded-full overflow-hidden border border-slate-800 shadow-inner p-1">
                 <motion.div
                   initial={{ width: 0 }}
                   whileInView={{ width: `${(item.value / maxForecast) * 100}%` }}
                   viewport={{ once: true }}
                   transition={{ duration: 1.2, ease: "circOut", delay: idx * 0.1 }}
-                  className="h-full rounded-full"
-                  style={{ backgroundColor: item.color }}
+                  className="h-full rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                  style={{ 
+                    backgroundColor: item.color,
+                    boxShadow: `0 0 20px ${item.color}33`
+                  }}
                 />
               </div>
               <div className="w-40 text-right">
-                <p className="text-2xl font-black text-slate-900 font-mono tracking-tighter">~{item.display}</p>
-                <p className="text-xs font-black text-slate-500 uppercase tracking-widest -mt-1">ARR</p>
+                <p className="text-2xl font-black text-white font-mono tracking-tighter">~{item.display}</p>
+                <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest -mt-1">Annual Recurring Revenue</p>
               </div>
             </div>
           ))}
         </div>
 
-        <div className="mt-16 pt-8 border-t border-stone-200 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-slate-500 font-bold text-lg italic">
-            基準：Y1 = {FORECAST.YEARLY_UNITS.Y1} 台、Y2 = {FORECAST.YEARLY_UNITS.Y2} 台、Y3 = {FORECAST.YEARLY_UNITS.Y3} 台訂閱部署；{(FORECAST.SINKING_FUND_RATE * 100).toFixed(0)}% Sinking Fund 提撥後仍維持正現金流
+        <div className="mt-16 pt-8 border-t border-slate-800 flex flex-col md:flex-row justify-between items-center gap-4">
+          <p className="text-slate-500 font-bold text-lg italic uppercase tracking-tight">
+            基準：Y1 = {FORECAST.YEARLY_UNITS.Y1} 台、Y2 = {FORECAST.YEARLY_UNITS.Y2} 台、Y3 = {FORECAST.YEARLY_UNITS.Y3} 台訂閱部署；{(FORECAST.SINKING_FUND_RATE * 100).toFixed(0)}% Sinking Fund 提撥後維持正現金流
           </p>
-          <div className="flex items-center gap-2 px-4 py-2 bg-emerald-100 rounded-full border border-emerald-200">
-            <TrendingUp size={16} className="text-emerald-600" />
-            <span className="text-xs font-black text-emerald-700 uppercase tracking-widest">複合成長預測</span>
+          <div className="flex items-center gap-2 px-6 py-2 bg-emerald-500/10 rounded-full border border-emerald-500/20">
+            <TrendingUp size={16} className="text-emerald-400" />
+            <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">複合成長預測已驗證</span>
           </div>
         </div>
       </div>
